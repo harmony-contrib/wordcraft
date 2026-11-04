@@ -72,9 +72,12 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
         .frame(egui::Frame::NONE.fill(t.nav).inner_margin(egui::Margin { left: 0, right: 0, top: if mac { 0 } else { 12 }, bottom: 12 }))
         .show(ui, |ui| {
             if let Some(brand) = app.services.branding {
-                ui.horizontal(|ui| {
-                    brand.show_icon(ui, 32.0);
-                    ui.label(egui::RichText::new(brand.name).color(t.on_accent));
+                egui::Frame::NONE.inner_margin(egui::Margin { left: 18, right: 16, top: 4, bottom: 8 }).show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        brand.show_icon(ui, 28.0);
+                        ui.add_space(6.0);
+                        ui.label(egui::RichText::new(brand.name).font(crate::theme::semibold(16.0)).color(t.on_accent));
+                    });
                 });
             }
             // Right to left the navigation is on the right, away from the macOS traffic lights.
