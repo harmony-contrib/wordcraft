@@ -20,6 +20,7 @@ mod pictures;
 mod prefs;
 
 pub(crate) use commands::{discards_document, works_without_document};
+#[cfg(not(target_env = "ohos"))]
 pub(crate) use input::control_click_as_secondary;
 
 impl WordApp {

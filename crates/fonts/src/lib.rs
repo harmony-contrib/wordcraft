@@ -24,6 +24,8 @@ pub use kurbo::BezPath;
 pub use script::{fallback_rank, is_emoji, needs_layout_tables, script_fallbacks};
 use skrifa::MetadataProvider;
 use skrifa::instance::Size;
+#[cfg(target_env = "ohos")]
+pub use ui_fallback::system_ui_font_from_files;
 pub use ui_fallback::{
     SystemUiFont, is_cjk, system_arabic_ui_font, system_cjk_ui_font, system_cjk_ui_font_for, system_hant_ui_font, ui_needs_system_cjk,
     ui_uncovered_cjk,

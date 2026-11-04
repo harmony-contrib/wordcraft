@@ -37,8 +37,8 @@ use wordcraft_engine::WindowView;
 use crate::{WordApp, documents, window_ui::WindowUi};
 
 /// The window title for a document called `name`.
-pub(crate) fn title(name: &str, dirty: bool) -> String {
-    format!("{name}{} - WordCraft", if dirty { " •" } else { "" })
+pub(crate) fn title(name: &str, dirty: bool, app_name: &str) -> String {
+    format!("{name}{} - {app_name}", if dirty { " •" } else { "" }).replace('\0', "")
 }
 
 /// An open window.
@@ -569,12 +569,12 @@ impl WordApp {
     /// The drawn window's title: its document's name as View › Window › Switch Windows gives it.
     pub(crate) fn window_title(&self) -> String {
         if !self.has_document() {
-            return "WordCraft".to_string();
+            return self.display_name().replace('\0', "");
         }
         let mut name = self.windows.menu_title(self.windows.shown).map(str::to_string).unwrap_or_else(|| self.title_stem());
         // X11 converts window titles to C strings, which cannot contain NUL (#3634).
         name.retain(|c| c != '\0');
-        title(&name, self.session.dirty)
+        title(&name, self.session.dirty, self.display_name())
     }
 
     /// Draw every window, each in its viewport (see the module documentation).
@@ -598,13 +598,14 @@ impl WordApp {
         self.windows.recent = list.recent().filter_map(|id| list.get(id).copied()).collect();
         let titles: HashMap<u64, String> = self.windows.open.iter().map(|w| (w.key, w.title.clone())).collect();
         let base = self.windows.builder.clone();
+        let app_name = self.display_name().replace('\0', "");
         self.windows.showing = true;
         let events = viewports.show(
             ui,
             &mut list,
             |_, key| match titles.get(key).filter(|t| !t.is_empty()) {
                 Some(t) => base.clone().with_title(t.clone()),
-                None => base.clone().with_title("WordCraft"),
+                None => base.clone().with_title(app_name.clone()),
             },
             |ui, _, key| self.draw_window(ui, *key),
         );

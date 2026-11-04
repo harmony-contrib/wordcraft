@@ -13,6 +13,13 @@ use skrifa::raw::FileRef;
 
 use crate::CraftFont;
 
+/// Load a host platform's UI font candidates with the same size and glyph checks as desktop fonts.
+#[cfg(target_env = "ohos")]
+pub fn system_ui_font_from_files(names: &[&str], needed: &[char], hant: bool) -> Option<SystemUiFont> {
+    let needed = needed.get(..MAX_NEEDED).unwrap_or(needed);
+    find_ui_font(&crate::system_font_dirs(), names, needed, if hant { Region::Hant } else { Region::Hans })
+}
+
 /// An installed font file chosen for the interface.
 pub struct SystemUiFont {
     /// The face's family name, e.g. `Microsoft YaHei`.

@@ -313,6 +313,10 @@ pub fn title_bar(app: &mut WordApp, ui: &mut Ui) {
             crate::rtl::root(ui, |ui| {
                 ui.horizontal_centered(|ui| {
                     ui.spacing_mut().item_spacing = vec2(2.0, 0.0);
+                    if let Some(brand) = app.services.branding {
+                        brand.show_icon(ui, control_h);
+                        ui.add_space(6.0);
+                    }
                     // AutoSave switch: greyed out, with the reason as its tooltip, when AutoSave can't
                     // cover the document (#196, #176); clicking it then offers Save As where that helps.
                     let block = app.autosave_block();
@@ -399,7 +403,7 @@ pub fn title_bar(app: &mut WordApp, ui: &mut Ui) {
             // Centred title.
             let title = if !app.has_document() {
                 // No document open (#1129): the app's name alone.
-                "WordCraft".to_string()
+                app.display_name().to_string()
             } else {
                 format!(
                     "{} — {}",

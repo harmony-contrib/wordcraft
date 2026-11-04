@@ -8,6 +8,11 @@ description = "WordCraft egui front end (Word-style ribbon UI); swappable: nothi
 [lints]
 workspace = true
 
+[features]
+default = ["upstream-branding"]
+# Embedding hosts can omit upstream application artwork.
+upstream-branding = []
+
 [dependencies]
 craft-ui = { git = "https://github.com/storytold/craft-libs", rev = "92d392cff132eaf53e13afff77f38b5c11b73aa0" }
 # Interface translations: lookup, fallback, plurals and system-locale matching over the craft-i18n
@@ -15,8 +20,6 @@ craft-ui = { git = "https://github.com/storytold/craft-libs", rev = "92d392cff13
 # `craft-i18n.rev`). Same craft-libs rev as craft-ui; it brings lazy per-locale parsing
 # (storytold/craft-libs#247), ICU4X plural rules and bidi isolates around inserted values.
 craft-i18n = { git = "https://github.com/storytold/craft-libs", rev = "92d392cff132eaf53e13afff77f38b5c11b73aa0" }
-# One native window per open document: the window list, the Window menu and the egui viewports.
-craft-window = { git = "https://github.com/storytold/craft-libs", rev = "92d392cff132eaf53e13afff77f38b5c11b73aa0", features = ["egui"] }
 wordcraft-geom = { workspace = true, features = ["image"] }
 wordcraft-doc = { workspace = true }
 wordcraft-fonts = { workspace = true }
@@ -39,13 +42,19 @@ sys-locale = { version = "0.3", features = ["js"] }
 # Linux only, where winit reports no system theme: the desktop portal's light/dark answer (see
 # `desktop_theme.rs`). Already in the tree, with these features, through egui's own accessibility
 # bus; pinned to one version so nothing is built twice.
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(all(target_os = "linux", not(target_env = "ohos")))'.dependencies]
 zbus = "=5.19.0"
 
 # Comment times in the user's own time zone (`local_time.rs`); the web app asks the browser.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
+
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))'.dependencies]
 craft-update = { workspace = true }
+
+[target.'cfg(not(target_env = "ohos"))'.dependencies]
+# Native document windows (also compiled for the web single-window path).
+craft-window = { git = "https://github.com/storytold/craft-libs", rev = "92d392cff132eaf53e13afff77f38b5c11b73aa0", features = ["egui"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # The browser clock (`SystemTime::now()`/`Instant::now()` panic on wasm32).

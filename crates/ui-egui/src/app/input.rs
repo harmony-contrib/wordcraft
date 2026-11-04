@@ -48,11 +48,22 @@ impl WordApp {
     /// (#959 review). A real click in the same frame as a control step is ignored too, which errs
     /// the safe way.
     pub(crate) fn input_from_control(&self, ctx: &egui::Context) -> bool {
-        let viewport = ctx.viewport_id();
-        self.synthetic_pending || ctx.with_plugin(|p: &mut crate::windows::ViewportInput| p.injected == Some(viewport)).unwrap_or(false)
+        self.synthetic_pending || {
+            #[cfg(not(target_env = "ohos"))]
+            {
+                let viewport = ctx.viewport_id();
+                ctx.with_plugin(|p: &mut crate::windows::ViewportInput| p.injected == Some(viewport)).unwrap_or(false)
+            }
+            #[cfg(target_env = "ohos")]
+            {
+                let _ = ctx;
+                false
+            }
+        }
     }
 
     /// The control channel's next input frame, taken off the queue.
+    #[cfg(not(target_env = "ohos"))]
     pub(crate) fn next_synthetic(&mut self) -> Option<Vec<egui::Event>> {
         let (events, n) = self.peek_synthetic()?;
         self.synthetic.drain(..n);

@@ -2,44 +2,45 @@
 
 use crate::WordApp;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
 use craft_update::dialog::{CheckResultDialog, CheckResultResponse};
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
 use craft_update::updater::{Action, Status, Updater};
 
 pub(crate) struct Runtime {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     updater: Updater,
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     result_dialog: CheckResultDialog,
     /// The desktop app turns the check at start on; tests and the web build leave it off.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     startup_check: bool,
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     check_requested: bool,
     /// The context of the last frame, to wake the UI when a check is queued from a menu callback.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     repaint: Option<egui::Context>,
     pub(crate) manual_window_open: bool,
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     pub(crate) status_message: Option<String>,
 }
 
+#[cfg_attr(any(target_arch = "wasm32", target_env = "ohos"), allow(clippy::derivable_impls))]
 impl Default for Runtime {
     fn default() -> Self {
         Self {
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             updater: Updater::new(&crate::UPDATE_APP, env!("CARGO_PKG_VERSION")),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             result_dialog: CheckResultDialog::new(&crate::UPDATE_APP, env!("CARGO_PKG_VERSION")),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             startup_check: false,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             check_requested: false,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             repaint: None,
             manual_window_open: false,
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
             status_message: None,
         }
     }
@@ -47,14 +48,14 @@ impl Default for Runtime {
 
 impl WordApp {
     /// Whether the app asks for a newer release when it starts (off until the desktop app turns it on).
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     pub fn set_startup_update_check(&mut self, on: bool) {
         self.updates_rt.startup_check = on;
     }
 }
 
 pub(crate) fn check(app: &mut WordApp) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     {
         app.updates_rt.check_requested = true;
         app.updates_rt.manual_window_open = true;
@@ -62,15 +63,19 @@ pub(crate) fn check(app: &mut WordApp) {
             ctx.request_repaint();
         }
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     {
         app.updates_rt.manual_window_open = true;
-        app.updates_rt.status_message = Some(tl!("Update check is not supported in the web browser.").to_string());
+        #[cfg(target_arch = "wasm32")]
+        let message = tl!("Update check is not supported in the web browser.");
+        #[cfg(target_env = "ohos")]
+        let message = "Updates are managed by the host application.";
+        app.updates_rt.status_message = Some(message.to_string());
     }
 }
 
 pub(crate) fn tick(app: &mut WordApp, ctx: &egui::Context) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     {
         let rt = &mut app.updates_rt;
         rt.repaint = Some(ctx.clone());
@@ -81,12 +86,12 @@ pub(crate) fn tick(app: &mut WordApp, ctx: &egui::Context) {
         }
         rt.updater.tick(ctx);
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     let _ = (app, ctx);
 }
 
 pub(crate) fn show(app: &mut WordApp, ctx: &egui::Context) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     {
         // The restart helper is scheduled before the app closes, so no update starts over unsaved work.
         let clean = !(app.session.dirty || app.save_unconfirmed() || app.printing.busy() || crate::panes::has_comment_drafts(app));
@@ -113,7 +118,7 @@ pub(crate) fn show(app: &mut WordApp, ctx: &egui::Context) {
         }
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     if app.updates_rt.manual_window_open {
         let mut open = true;
         egui::Window::new(tl!("Check for Updates"))

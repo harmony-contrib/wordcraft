@@ -475,7 +475,7 @@ fn new_window_shows_the_document_twice_each_with_its_own_caret_and_zoom() {
     let b = a.active_viewport();
     assert_ne!(b, ViewportId::ROOT);
     assert_eq!(window_labels(&a), ["Document1:1 •", "Document1:2 •"]);
-    assert_eq!(a.window_title(), super::title("Document1:2", true));
+    assert_eq!(a.window_title(), super::title("Document1:2", true, "WordCraft"));
 
     a.run("view.zoom", json!({"value": 150})).unwrap();
     a.run("text.insert", json!({"text": "!"})).unwrap();
@@ -519,7 +519,7 @@ fn closing_one_of_two_windows_on_a_document_asks_nothing() {
     assert_eq!((a.window_count(), a.session.document_id(), text(&a).as_str()), (1, doc, "Kept"));
     assert!(a.session.dirty);
     frames(&ctx, &mut a, 2);
-    assert_eq!(a.window_title(), super::title("Document1", true));
+    assert_eq!(a.window_title(), super::title("Document1", true, "WordCraft"));
     a.run("file.close", json!({})).unwrap();
     assert_eq!(prompt(&a), Some("saveChanges"), "the last window asks");
     a.run("ui.saveChanges", json!({"answer": "cancel"})).unwrap();

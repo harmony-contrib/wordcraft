@@ -71,6 +71,12 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
         .resizable(false)
         .frame(egui::Frame::NONE.fill(t.nav).inner_margin(egui::Margin { left: 0, right: 0, top: if mac { 0 } else { 12 }, bottom: 12 }))
         .show(ui, |ui| {
+            if let Some(brand) = app.services.branding {
+                ui.horizontal(|ui| {
+                    brand.show_icon(ui, 32.0);
+                    ui.label(egui::RichText::new(brand.name).color(t.on_accent));
+                });
+            }
             // Right to left the navigation is on the right, away from the macOS traffic lights.
             let rtl = crate::rtl::on();
             let back = if mac {
@@ -667,8 +673,8 @@ fn open_page(app: &mut WordApp, ui: &mut Ui) {
     // doesn't show up, WordCraft's own browser is always one click away.
     #[cfg(all(unix, not(target_os = "macos"), not(target_arch = "wasm32")))]
     if ui
-        .button(egui::RichText::new(tl!("Browse in WordCraft…")).font(medium(14.0)))
-        .on_hover_text(tl!("Open a file with WordCraft's own browser when the system file dialog doesn't appear."))
+        .button(egui::RichText::new(app.brand_text(tl!("Browse in WordCraft…"))).font(medium(14.0)))
+        .on_hover_text(app.brand_text(tl!("Open a file with WordCraft's own browser when the system file dialog doesn't appear.")))
         .clicked()
     {
         let _ = app.run("ui.fileBrowser", json!({}));

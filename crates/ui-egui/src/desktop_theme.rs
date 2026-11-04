@@ -80,10 +80,10 @@ impl DesktopTheme {
 }
 
 /// The watcher's session-bus connection, kept between polls.
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(target_env = "ohos")))]
 struct Bus(Option<zbus::blocking::Connection>);
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(target_env = "ohos")))]
 impl Bus {
     /// No connection yet: the first read opens one.
     fn new() -> Self {
@@ -92,10 +92,10 @@ impl Bus {
 }
 
 /// Elsewhere there is no session bus to keep.
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(all(target_os = "linux", not(target_env = "ohos"))))]
 struct Bus;
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(all(target_os = "linux", not(target_env = "ohos"))))]
 impl Bus {
     fn new() -> Self {
         Bus
@@ -105,7 +105,7 @@ impl Bus {
 /// Ask the portal once, over `bus`'s connection (opened when there is none). D-Bus calls
 /// block, so this belongs off the UI thread. A connection whose calls all fail is dropped, so
 /// the next poll opens a fresh one (the bus or portal may have restarted).
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(target_env = "ohos")))]
 fn read(bus: &mut Bus) -> Option<bool> {
     const PORTAL: &str = "org.freedesktop.portal.Desktop";
     const SETTINGS: &str = "org.freedesktop.portal.Settings";
@@ -133,7 +133,7 @@ fn read(bus: &mut Bus) -> Option<bool> {
 
 /// The portal's `color-scheme` answer. `default` means the desktop states no preference, so
 /// neither does the application.
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(target_env = "ohos")))]
 fn parse(scheme: &str) -> Option<bool> {
     match scheme {
         "prefer-dark" => Some(true),
@@ -143,7 +143,7 @@ fn parse(scheme: &str) -> Option<bool> {
 }
 
 /// macOS and Windows answer through winit, which the caller already has.
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(all(target_os = "linux", not(target_env = "ohos"))))]
 fn read(_bus: &mut Bus) -> Option<bool> {
     None
 }
@@ -154,7 +154,7 @@ mod tests {
 
     /// The portal answers with one of three strings; only the two preferences are a choice.
     #[test]
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", not(target_env = "ohos")))]
     fn the_portal_answer_reads_as_a_choice_or_as_none() {
         assert_eq!(parse("prefer-dark"), Some(true));
         assert_eq!(parse("prefer-light"), Some(false));
@@ -164,7 +164,7 @@ mod tests {
 
     /// Off Linux the caller already has winit's answer, so this adds nothing.
     #[test]
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(not(all(target_os = "linux", not(target_env = "ohos"))))]
     fn other_platforms_answer_through_winit() {
         assert_eq!(prefers_dark(), None);
     }

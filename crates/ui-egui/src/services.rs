@@ -4,6 +4,8 @@ use super::{FileDialogAnswer, FileDialogRequest, async_saves, paste_picture, pri
 /// Platform services injected by the host (file dialogs, file I/O).
 #[derive(Default)]
 pub struct Services {
+    /// Optional identity of the embedding application; upstream credits remain available.
+    pub branding: Option<crate::Branding>,
     /// Desktop: discover configured printers on a worker.
     pub printers: Option<printing::Discover>,
     /// Desktop: submit the PDF with the chosen settings on a worker.

@@ -212,6 +212,8 @@ pub fn system_font_dirs() -> Vec<std::path::PathBuf> {
     if cfg!(target_arch = "wasm32") {
         return dirs;
     }
+    #[cfg(target_env = "ohos")]
+    dirs.push("/system/fonts".into());
     let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
     if cfg!(target_os = "macos") {
         dirs.extend(["/System/Library/Fonts", "/Library/Fonts"].map(Into::into));

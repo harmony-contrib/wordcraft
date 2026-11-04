@@ -12,7 +12,10 @@
 //!
 //! `swap_window` names every field, so a new field doesn't compile until it is classified.
 
-use crate::{AwaitingSave, UiState, WordApp, canvas, colors, content_controls, dialogs, dialogs_review, file_dialogs, keytips, previews, print_page};
+use crate::{AwaitingSave, UiState, canvas, colors, content_controls, dialogs, dialogs_review, file_dialogs, keytips, previews, print_page};
+
+#[cfg(any(not(target_env = "ohos"), test))]
+use crate::WordApp;
 
 /// A window's state while another window is drawn. Fields mirror their namesakes in [`WordApp`]
 /// and, for the ribbon tab, Backstage, printing and keytips, in [`UiState`].
@@ -144,6 +147,7 @@ impl WindowUi {
 /// Swap each named field of the drawn window (bound by the caller's destructuring) with its
 /// namesake in the [`WindowUi`]. The `WindowUi` pattern is exhaustive, so a field added there
 /// and left out here doesn't compile.
+#[cfg(any(not(target_env = "ohos"), test))]
 macro_rules! swap_fields {
     ($w:ident: $($(#[$attr:meta])* $field:ident),* $(,)?) => {
         let WindowUi { $($(#[$attr])* $field: _),* } = &*$w;
@@ -151,6 +155,7 @@ macro_rules! swap_fields {
     };
 }
 
+#[cfg(any(not(target_env = "ohos"), test))]
 impl WordApp {
     /// Exchange the drawn window's state with `w`'s: afterwards the app draws the window `w`
     /// held, and `w` holds the one that was drawn. App-wide and per-document state stays. The

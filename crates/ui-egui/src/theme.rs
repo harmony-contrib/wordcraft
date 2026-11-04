@@ -679,6 +679,10 @@ fn system_cjk_font(hans: bool, korean: bool) -> Option<&'static wordcraft_fonts:
             }
         }
         log::debug!("interface: {} CJK characters lack an embedded glyph", needed.len());
+        #[cfg(target_env = "ohos")]
+        if let Some(font) = ohos_ui_font(false, &needed) {
+            return Some(font);
+        }
         wordcraft_fonts::system_cjk_ui_font_for(hans, korean, &needed)
     })
     .as_ref()
@@ -688,11 +692,24 @@ fn system_cjk_font(hans: bool, korean: bool) -> Option<&'static wordcraft_fonts:
 fn system_hant_font() -> Option<&'static wordcraft_fonts::SystemUiFont> {
     static HANT: std::sync::OnceLock<Option<wordcraft_fonts::SystemUiFont>> = std::sync::OnceLock::new();
     HANT.get_or_init(|| {
+        #[cfg(target_env = "ohos")]
+        if let Some(font) = ohos_ui_font(true, &crate::i18n::Lang::hant_font_chars()) {
+            return Some(font);
+        }
         let f = wordcraft_fonts::system_hant_ui_font(&crate::i18n::Lang::hant_font_chars());
         log::debug!("interface: Traditional Chinese font {:?}", f.as_ref().map(|f| &f.family));
         f
     })
     .as_ref()
+}
+
+/// HarmonyOS provides these faces itself; no font bytes are bundled by the embedding host.
+#[cfg(target_env = "ohos")]
+fn ohos_ui_font(hant: bool, needed: &[char]) -> Option<wordcraft_fonts::SystemUiFont> {
+    let sc = "/system/fonts/HarmonyOS_Sans_SC.ttf";
+    let tc = "/system/fonts/HarmonyOS_Sans_TC.ttf";
+    let names = [if hant { tc } else { sc }, if hant { sc } else { tc }, "/system/fonts/HarmonyOS_Sans.ttf"];
+    wordcraft_fonts::system_ui_font_from_files(&names, needed, hant)
 }
 
 pub fn medium(size: f32) -> FontId {

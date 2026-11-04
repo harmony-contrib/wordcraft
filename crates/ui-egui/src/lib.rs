@@ -7,9 +7,12 @@
 
 /// WordCraft as craft-update knows it, with its 128 px icon and accent colour: the update
 /// prompt shows both, and an AppImage's menu entry gets the icon.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
+    #[cfg(feature = "upstream-branding")]
     icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.wordcraft.png")),
+    #[cfg(not(feature = "upstream-branding"))]
+    icon_png: None,
     accent: Some([0x3f, 0x5f, 0xe0]),
     ..craft_update::suite::WORDCRAFT
 };
@@ -80,6 +83,7 @@ pub mod widgets;
 pub mod window_close;
 pub mod window_geometry;
 mod window_ui;
+#[cfg_attr(target_env = "ohos", path = "windows_single.rs")]
 mod windows;
 pub mod wordart_menus;
 pub mod zotero;
@@ -106,10 +110,13 @@ pub use dialogs::dialogs_templates;
 pub use file_dialogs::{FileDialogAnswer, FileDialogRequest, open_filters};
 
 mod app;
+mod branding;
 mod clock;
+pub use branding::Branding;
 mod services;
 mod state;
 
+#[cfg(not(target_env = "ohos"))]
 use app::control_click_as_secondary;
 pub(crate) use app::{discards_document, works_without_document};
 pub use clock::now_ms;
